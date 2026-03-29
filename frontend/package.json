@@ -1,0 +1,13 @@
+{
+  "name": "lab07-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Frontend proxy server for Azure microservices deployment lab",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
