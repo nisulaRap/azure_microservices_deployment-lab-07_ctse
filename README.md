@@ -5,7 +5,6 @@
 - gateway/: Node.js gateway service
 - frontend/: Frontend UI with Node.js proxy server
 - deployment-values.env: Azure deployment variables
-- Lab_07_Azure_microservices_lab.pdf: Lab sheet
 
 ## Prerequisites
 
