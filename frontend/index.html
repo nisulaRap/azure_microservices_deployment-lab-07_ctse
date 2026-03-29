@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab 07 Frontend</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --text: #10213a;
+      --muted: #4f637f;
+      --accent: #0a84ff;
+      --ok: #0c8c5f;
+      --border: #dce6f5;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at 20% 20%, #e6f1ff, var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+
+    .card {
+      width: min(720px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(14, 35, 68, 0.08);
+    }
+
+    h1 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: clamp(1.4rem, 2.8vw, 2rem);
+    }
+
+    p {
+      margin-top: 0;
+      color: var(--muted);
+    }
+
+    button {
+      background: var(--accent);
+      color: #fff;
+      border: 0;
+      padding: 10px 14px;
+      border-radius: 9px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button:hover {
+      filter: brightness(0.95);
+    }
+
+    pre {
+      margin-top: 14px;
+      background: #f8fbff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      overflow: auto;
+      min-height: 72px;
+    }
+
+    .ok {
+      color: var(--ok);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Azure Lab 07 Frontend</h1>
+    <p>Use the button below to call the gateway health endpoint through this frontend proxy.</p>
+    <p id="base" class="ok"></p>
+    <button id="check">Check Gateway Health</button>
+    <pre id="out">Waiting for request...</pre>
+    <p class="ok" id="status"></p>
+  </main>
+
+  <script>
+    let gatewayBase = "";
+    const output = document.getElementById("out");
+    const statusEl = document.getElementById("status");
+    const baseEl = document.getElementById("base");
+    const button = document.getElementById("check");
+
+    async function parseJsonSafely(res) {
+      const text = await res.text();
+      try {
+        return { ok: true, value: JSON.parse(text) };
+      } catch (_err) {
+        return { ok: false, value: text };
+      }
+    }
+
+    async function loadConfig() {
+      try {
+        const res = await fetch("/config");
+        const parsed = await parseJsonSafely(res);
+        if (!parsed.ok) {
+          throw new Error("/config did not return JSON");
+        }
+        const cfg = parsed.value;
+        gatewayBase = cfg.gatewayBase || "";
+        if (gatewayBase) {
+          baseEl.textContent = `Gateway base: ${gatewayBase}`;
+        }
+      } catch (_err) {
+        baseEl.textContent = "Gateway base unavailable (run frontend with npm start, not static server)";
+      }
+    }
+
+    loadConfig();
+
+    button.addEventListener("click", async () => {
+      const url = "/health";
+      output.textContent = `Calling ${url} ...`;
+      statusEl.textContent = "";
+
+      try {
+        const res = await fetch(url);
+        const parsed = await parseJsonSafely(res);
+        if (!parsed.ok) {
+          const snippet = parsed.value.slice(0, 180).replace(/\s+/g, " ");
+          output.textContent = `Non-JSON response from ${url} (status ${res.status}).\n` +
+            `This usually means a static server is running instead of the frontend proxy.\n` +
+            `Response preview: ${snippet}`;
+          return;
+        }
+        output.textContent = JSON.stringify({ code: res.status, body: parsed.value }, null, 2);
+        if (res.ok) {
+          statusEl.textContent = "Gateway is reachable";
+        }
+      } catch (err) {
+        output.textContent = err.message;
+      }
+    });
+  </script>
+</body>
+</html>
