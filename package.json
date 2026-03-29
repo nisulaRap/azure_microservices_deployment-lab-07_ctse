@@ -1,0 +1,13 @@
+{
+  "name": "ctse-lab07",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Run gateway and frontend locally for Lab 07",
+  "scripts": {
+    "install:all": "npm --prefix gateway install && npm --prefix frontend install",
+    "dev": "concurrently \"npm --prefix gateway start\" \"npm --prefix frontend start\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
